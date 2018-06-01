@@ -626,6 +626,7 @@ class Canvas(QWidget):
     def outOfPixmap(self, p):
         w, h = self.pixmap.width(), self.pixmap.height()
         return not (0 <= p.x() < w and 0 <= p.y() < h)
+        #return False
 
     def finalise(self):
         assert self.current
@@ -736,13 +737,29 @@ class Canvas(QWidget):
         elif key == Qt.Key_Return and self.canCloseShape():
             self.finalise()
         elif key == Qt.Key_Left and self.selectedShape:
-            self.moveOnePixel('Left')
+            self.moveNPixels(1,'Left')
         elif key == Qt.Key_Right and self.selectedShape:
-            self.moveOnePixel('Right')
+            self.moveNPixels(1,'Right')
         elif key == Qt.Key_Up and self.selectedShape:
-            self.moveOnePixel('Up')
+            self.moveNPixels(1,'Up')
         elif key == Qt.Key_Down and self.selectedShape:
-            self.moveOnePixel('Down')
+            self.moveNPixels(1,'Down')
+        elif key == Qt.Key_J and self.selectedShape:
+            self.moveNPixels(5,'Left')
+        elif key == Qt.Key_L and self.selectedShape:
+            self.moveNPixels(5,'Right')
+        elif key == Qt.Key_I and self.selectedShape:
+            self.moveNPixels(5,'Up')
+        elif key == Qt.Key_K and self.selectedShape:
+            self.moveNPixels(5,'Down')
+        elif key == Qt.Key_Y and self.selectedShape and not self.zoomOutOfBound(1):
+            self.zoomLarge(1)
+        elif key == Qt.Key_U and self.selectedShape and not self.zoomOutOfBound(3):
+            self.zoomLarge(3)
+        elif key == Qt.Key_O and self.selectedShape and not self.zoomOutOfBound(-3):
+            self.zoomLarge(-3)
+        elif key == Qt.Key_P and self.selectedShape and not self.zoomOutOfBound(-1):
+            self.zoomLarge(-1)
         elif key == Qt.Key_Z and self.selectedShape and\
              self.selectedShape.isRotated and not self.rotateOutOfBound(0.1):
             self.selectedShape.rotate(0.1)
@@ -771,7 +788,7 @@ class Canvas(QWidget):
             self.hideNormal = not self.hideNormal
             self.hideNRect.emit(self.hideNormal)
             self.update()
-        elif key == Qt.Key_O:
+        elif key == Qt.Key_Q:
             self.canOutOfBounding = not self.canOutOfBounding
         elif key == Qt.Key_B:
             self.showCenter = not self.showCenter
@@ -785,6 +802,54 @@ class Canvas(QWidget):
             if self.outOfPixmap(self.selectedShape.rotatePoint(p,angle)):
                 return True
         return False
+
+    def zoomOutOfBound(self, n):
+        if self.canOutOfBounding:
+            return False
+        for i, p in enumerate(self.selectedShape.points):
+            if self.outOfPixmap(self.selectedShape.moveLarge(p, n)):
+                return True
+        return False
+
+    def zoomLarge(self, n):
+        for i, p in enumerate(self.selectedShape.points):
+            self.selectedShape.points[i] = self.selectedShape.moveLarge(p, n)
+
+        self.shapeMoved.emit()
+        self.repaint()
+
+    def moveNPixels(self, n, direction):
+        # print(self.selectedShape.points)
+        if direction == 'Left' and not self.moveOutOfBound(QPointF(-1.0*n, 0)):
+            # print("move Left one pixel")
+            self.selectedShape.points[0] += QPointF(-1.0*n, 0)
+            self.selectedShape.points[1] += QPointF(-1.0*n, 0)
+            self.selectedShape.points[2] += QPointF(-1.0*n, 0)
+            self.selectedShape.points[3] += QPointF(-1.0*n, 0)
+            self.selectedShape.center += QPointF(-1.0*n, 0)
+        elif direction == 'Right' and not self.moveOutOfBound(QPointF(1.0*n, 0)):
+            # print("move Right one pixel")
+            self.selectedShape.points[0] += QPointF(1.0*n, 0)
+            self.selectedShape.points[1] += QPointF(1.0*n, 0)
+            self.selectedShape.points[2] += QPointF(1.0*n, 0)
+            self.selectedShape.points[3] += QPointF(1.0*n, 0)
+            self.selectedShape.center += QPointF(1.0*n, 0)
+        elif direction == 'Up' and not self.moveOutOfBound(QPointF(0, -1.0*n)):
+            # print("move Up one pixel")
+            self.selectedShape.points[0] += QPointF(0, -1.0*n)
+            self.selectedShape.points[1] += QPointF(0, -1.0*n)
+            self.selectedShape.points[2] += QPointF(0, -1.0*n)
+            self.selectedShape.points[3] += QPointF(0, -1.0*n)
+            self.selectedShape.center += QPointF(0, -1.0*n)
+        elif direction == 'Down' and not self.moveOutOfBound(QPointF(0, 1.0*n)):
+            # print("move Down one pixel")
+            self.selectedShape.points[0] += QPointF(0, 1.0*n)
+            self.selectedShape.points[1] += QPointF(0, 1.0*n)
+            self.selectedShape.points[2] += QPointF(0, 1.0*n)
+            self.selectedShape.points[3] += QPointF(0, 1.0*n)
+            self.selectedShape.center += QPointF(0, 1.0*n)
+        self.shapeMoved.emit()
+        self.repaint()
 
     def moveOnePixel(self, direction):
         # print(self.selectedShape.points)

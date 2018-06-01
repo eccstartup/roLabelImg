@@ -63,7 +63,6 @@ class Shape(object):
             # is used for drawing the pending line a different color.
             self.line_color = line_color
 
-
     def rotate(self, theta):
         for i, p in enumerate(self.points):
             self.points[i] = self.rotatePoint(p, theta)
@@ -78,6 +77,19 @@ class Shape(object):
         pResy = - sinTheta * order.x() + cosTheta * order.y()
         pRes = QPointF(self.center.x() + pResx, self.center.y() + pResy)
         return pRes
+
+    def moveFromTo(self, p, c, n):
+        x = p.x()
+        y = p.y()
+        a = c.x()
+        b = c.y()
+        d = math.sqrt(math.pow(x-a,2)+math.pow(y-b,2))
+        x = x + n*(x-a)/d
+        y = y + n*(y-b)/d
+        return QPointF(x, y)
+
+    def moveLarge(self, p, n):
+        return self.moveFromTo(p, self.center, n)
 
     def close(self):
         self.center = QPointF((self.points[0].x()+self.points[2].x()) / 2, (self.points[0].y()+self.points[2].y()) / 2)

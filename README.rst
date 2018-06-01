@@ -209,6 +209,8 @@ Hotkeys
 +------------+--------------------------------------------+
 | zxcv       | Keyboard to rotate selected rect box       |
 +------------+--------------------------------------------+
+try `ikjl` & `yuop` for move & zoom
+
 
 How to contribute
 ~~~~~~~~~~~~~~~~~
